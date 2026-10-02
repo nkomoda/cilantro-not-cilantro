@@ -21,7 +21,7 @@ struct ContentView: View {
                 buttons
             }
             .padding()
-            .navigationTitle("Cilantro?")
+            .navigationTitle("Cilantro or not cilantro?")
             .fullScreenCover(isPresented: $showCamera) {
                 CameraPicker { picked in setImage(picked) }
                     .ignoresSafeArea()

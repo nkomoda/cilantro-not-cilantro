@@ -21,6 +21,6 @@ train:            ## Train with Create ML -> ios/CilantroCheck/Model/CilantroCla
 data: clean-data split
 
 ios:              ## Generate the Xcode project (needs Xcode + `brew install xcodegen`)
-	cd ios && xcodegen && open CilantroCheck.xcodeproj
+	cd ios && xcodegen && open -a Xcode CilantroCheck.xcodeproj
 
 all: data train
