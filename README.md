@@ -2,6 +2,8 @@
 
 An iOS app that tells you whether a photo of food contains cilantro. Everything is free: openly licensed training images, Apple Create ML for training, and Core ML for on-device inference (no server).
 
+Built for people with the cilantro aversion gene — for everyone who gets nervous the moment green garnish shows up on food they ordered.
+
 ```
 scripts/      Python: download, clean and split the dataset
 training/     Swift: train the Create ML model
