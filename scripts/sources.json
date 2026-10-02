@@ -1,0 +1,33 @@
+{
+  "_comment": "Openverse search terms per label (food and kitchen photos). Edit freely, then re-run `make download` (photos you already have, or deleted, are skipped).",
+  "cilantro_keywords": ["cilantro", "coriander", "culantro"],
+  "openverse": {
+    "cilantro": [
+      "cilantro garnish",
+      "chopped cilantro",
+      "cilantro taco",
+      "pho cilantro",
+      "cilantro salsa",
+      "coriander leaves curry",
+      "cilantro rice",
+      "fresh cilantro",
+      "cilantro cutting board",
+      "chopping cilantro",
+      "cilantro guacamole",
+      "cilantro bunch kitchen"
+    ],
+    "not_cilantro": [
+      "parsley garnish",
+      "flat leaf parsley",
+      "parsley cutting board",
+      "fresh basil",
+      "basil garnish",
+      "basil pasta",
+      "green onion garnish",
+      "mint garnish",
+      "salad",
+      "dill",
+      "vegetables"
+    ]
+  }
+}

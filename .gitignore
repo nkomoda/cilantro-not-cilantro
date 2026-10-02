@@ -1,0 +1,17 @@
+# Python
+.venv/
+__pycache__/
+
+# Dataset images: re-downloadable, and licenses require attribution if redistributed
+data/raw/**/*
+!data/raw/*/
+!data/raw/*/.gitkeep
+data/split/
+
+# Xcode (project is generated from ios/project.yml)
+ios/*.xcodeproj/
+ios/CilantroCheck/Info.plist
+DerivedData/
+xcuserdata/
+
+.DS_Store

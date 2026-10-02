@@ -1,0 +1,30 @@
+# XcodeGen spec. Generate the Xcode project with:  cd ios && xcodegen
+# (brew install xcodegen). The generated .xcodeproj is git-ignored; edit this file instead.
+name: CilantroCheck
+options:
+  bundleIdPrefix: com.example  # change to something unique to you, e.g. com.yourname
+  deploymentTarget:
+    iOS: "17.0"
+targets:
+  CilantroCheck:
+    type: application
+    platform: iOS
+    sources:
+      - path: CilantroCheck
+        excludes:
+          - "**/.gitkeep"
+    info:
+      path: CilantroCheck/Info.plist
+      properties:
+        CFBundleDisplayName: Cilantro?
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        NSCameraUsageDescription: Take a photo of your food to check it for cilantro.
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.cilantrocheck
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        TARGETED_DEVICE_FAMILY: "1"
+        # Set your team in Xcode (Signing & Capabilities). A free Apple ID works for your own phone.
+        CODE_SIGN_STYLE: Automatic
