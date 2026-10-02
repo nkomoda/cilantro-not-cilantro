@@ -1,7 +1,10 @@
 import PhotosUI
+import SwiftData
 import SwiftUI
 
 struct ContentView: View {
+    @Environment(\.modelContext) private var context
+    @Environment(\.scenePhase) private var scenePhase
     @State private var image: UIImage?
     @State private var prediction: Prediction?
     @State private var errorMessage: String?
@@ -28,6 +31,16 @@ struct ContentView: View {
             }
             .onChange(of: photoItem) { _, item in
                 Task { await loadPhoto(item) }
+            }
+            .toolbar {
+                NavigationLink {
+                    HistoryView()
+                } label: {
+                    Label("History", systemImage: "clock.arrow.circlepath")
+                }
+            }
+            .onChange(of: scenePhase, initial: true) { _, phase in
+                if phase == .active { History.prune(context) }
             }
         }
     }
@@ -60,7 +73,7 @@ struct ContentView: View {
                 .multilineTextAlignment(.center)
         } else if let prediction {
             VStack(spacing: 4) {
-                Text(prediction.hasCilantro ? "🌿 Cilantro detected" : "✅ No cilantro")
+                ResultLabel(prediction: prediction)
                     .font(.title2.bold())
                 Text("Cilantro probability: \(prediction.cilantroProbability, format: .percent.precision(.fractionLength(0)))")
                     .foregroundStyle(.secondary)
@@ -106,7 +119,10 @@ struct ContentView: View {
         isClassifying = true
         defer { isClassifying = false }
         do {
-            prediction = try await Self.detector.get().classify(picked)
+            let result = try await Self.detector.get().classify(picked)
+            prediction = result
+            context.insert(CheckRecord(prediction: result, image: picked))
+            History.prune(context)
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -115,4 +131,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+        .modelContainer(for: CheckRecord.self, inMemory: true)
 }
