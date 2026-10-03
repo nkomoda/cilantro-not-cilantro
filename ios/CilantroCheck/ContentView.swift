@@ -7,6 +7,7 @@ struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var image: UIImage?
     @State private var prediction: Prediction?
+    @State private var currentRecord: CheckRecord?
     @State private var errorMessage: String?
     @State private var isClassifying = false
     @State private var showCamera = false
@@ -77,6 +78,10 @@ struct ContentView: View {
                     .font(.title2.bold())
                 Text("Cilantro probability: \(prediction.cilantroProbability, format: .percent.precision(.fractionLength(0)))")
                     .foregroundStyle(.secondary)
+                if let currentRecord {
+                    FeedbackPicker(record: currentRecord)
+                        .padding(.top, 8)
+                }
             }
         }
     }
@@ -111,6 +116,7 @@ struct ContentView: View {
     private func setImage(_ picked: UIImage) {
         image = picked
         prediction = nil
+        currentRecord = nil
         errorMessage = nil
         Task { await classify(picked) }
     }
@@ -121,7 +127,9 @@ struct ContentView: View {
         do {
             let result = try await Self.detector.get().classify(picked)
             prediction = result
-            context.insert(CheckRecord(prediction: result, image: picked))
+            let record = CheckRecord(prediction: result, image: picked)
+            context.insert(record)
+            currentRecord = record
             History.prune(context)
         } catch {
             errorMessage = error.localizedDescription
