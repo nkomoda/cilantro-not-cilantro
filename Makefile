@@ -1,6 +1,6 @@
 PYTHON := .venv/bin/python
 
-.PHONY: setup download clean-data split train data ios all
+.PHONY: setup download import clean-data split train data ios all
 
 setup:            ## Create the Python venv and install dependencies
 	python3 -m venv .venv
@@ -8,6 +8,9 @@ setup:            ## Create the Python venv and install dependencies
 
 download:         ## Fetch openly licensed food photos into data/raw/
 	cd scripts && ../$(PYTHON) download_openverse.py
+
+import:           ## Add photos exported from the app (History -> Export). Optional: ZIP=path/to/file.zip
+	$(PYTHON) scripts/import_app_export.py $(if $(ZIP),"$(ZIP)",)
 
 clean-data:       ## Normalize, de-duplicate and count images in data/raw/
 	cd scripts && ../$(PYTHON) clean_dataset.py

@@ -56,6 +56,28 @@ The Simulator has no camera, so the Camera button is disabled there; use **Libra
 
 After retraining, just rebuild. Xcode picks up the new `.mlmodel` automatically.
 
+### 4. Feed real-world results back into training
+
+After eating, answer **"was there cilantro?"** on the result screen or on any check in **History**:
+
+| Answer | Meaning | Used for training? |
+|---|---|---|
+| Yes, visible | Cilantro, and you can see it in the photo | ✅ → `data/raw/cilantro/` |
+| Yes, hidden | Cilantro, but it isn't visible (mixed in, under other food) | ❌ the model can only learn what's visible |
+| No | No cilantro | ✅ → `data/raw/not_cilantro/` |
+
+History shows the model's real-world accuracy from your answers. Answered checks are kept past the 7 days until exported.
+
+To retrain on them: **History → Export** (top right), save the zip to **iCloud Drive**, then on the Mac:
+
+```bash
+make import       # newest CilantroExport*.zip in iCloud Drive or Downloads
+make data
+make train        # then press Run in Xcode
+```
+
+`make import ZIP=path/to/file.zip` imports a specific file. Importing the same zip twice is safe.
+
 ## Improving accuracy
 
 - Hard negatives: parsley-garnished dishes, Thai basil, green onion, mint, arugula.

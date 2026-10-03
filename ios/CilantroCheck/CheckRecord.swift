@@ -11,6 +11,10 @@ final class CheckRecord {
     @Attribute(.externalStorage) var imageData: Data
     /// Small JPEG for the history list.
     var thumbnailData: Data
+    /// The user's answer to "Was there cilantro?" (a `Feedback` raw value), or nil if not answered yet.
+    var feedbackRaw: String?
+    /// When this check was last included in a training export. Reset when the answer changes.
+    var exportedAt: Date?
 
     init(date: Date = .now, prediction: Prediction, image: UIImage) {
         self.date = date
@@ -22,15 +26,61 @@ final class CheckRecord {
     var prediction: Prediction { Prediction(cilantroProbability: cilantroProbability) }
     var image: UIImage? { UIImage(data: imageData) }
     var thumbnail: UIImage? { UIImage(data: thumbnailData) }
+
+    var feedback: Feedback? {
+        get { feedbackRaw.flatMap(Feedback.init(rawValue:)) }
+        set {
+            feedbackRaw = newValue?.rawValue
+            exportedAt = nil  // a changed answer should be exported again
+        }
+    }
+
+    /// Whether the model's guess matched the user's answer. Nil when unanswered, or when the
+    /// cilantro was hidden (the model can only judge what's visible in the photo).
+    var modelWasRight: Bool? {
+        switch feedback {
+        case .visible: prediction.hasCilantro
+        case .absent: !prediction.hasCilantro
+        case .hidden, nil: nil
+        }
+    }
+
+    var needsExport: Bool { feedback != nil && exportedAt == nil }
+}
+
+/// The user's answer after eating: was there actually cilantro?
+enum Feedback: String, CaseIterable {
+    case visible   // cilantro, and you can see it in the photo -> training data
+    case hidden    // cilantro, but not visible in the photo -> not used for training
+    case absent    // no cilantro -> training data
+
+    var title: String {
+        switch self {
+        case .visible: "Yes, visible"
+        case .hidden: "Yes, hidden"
+        case .absent: "No"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .visible: "leaf.fill"
+        case .hidden: "eye.slash"
+        case .absent: "xmark.circle"
+        }
+    }
 }
 
 enum History {
     static let retentionDays = 7
 
-    /// Deletes checks older than `retentionDays`.
+    /// Deletes checks older than `retentionDays`, except answered ones that haven't been
+    /// exported yet. Those are training data, so they wait for the next export.
     static func prune(_ context: ModelContext) {
         guard let cutoff = Calendar.current.date(byAdding: .day, value: -retentionDays, to: .now) else { return }
-        try? context.delete(model: CheckRecord.self, where: #Predicate { $0.date < cutoff })
+        try? context.delete(model: CheckRecord.self, where: #Predicate {
+            $0.date < cutoff && ($0.feedbackRaw == nil || $0.exportedAt != nil)
+        })
         try? context.save()
     }
 }
