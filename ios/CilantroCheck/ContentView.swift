@@ -22,6 +22,12 @@ struct ContentView: View {
                 preview
                 resultView
                 Spacer()
+                if ExpiryReminder.expiresSoon, let expiry = ExpiryReminder.expirationDate {
+                    Label("App expires \(expiry.formatted(.relative(presentation: .named))). Press Run in Xcode to renew.",
+                          systemImage: "exclamationmark.triangle")
+                        .font(.footnote)
+                        .foregroundStyle(.orange)
+                }
                 buttons
             }
             .padding()
@@ -43,6 +49,7 @@ struct ContentView: View {
             .onChange(of: scenePhase, initial: true) { _, phase in
                 if phase == .active { History.prune(context) }
             }
+            .task { await ExpiryReminder.schedule() }
         }
     }
 
