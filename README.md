@@ -19,7 +19,8 @@ data/
 
 ```bash
 make setup        # Python venv + deps
-make download     # Openverse food/kitchen photos into data/raw/
+make download     # Openverse food/kitchen photos into data/raw/, then moves
+                  # non-food photos (gardens, people, animals...) to data/rejected/
                   # >>> now REVIEW data/raw/ by hand (see below) <<<
 make data         # normalize, de-duplicate, split 80/20 into data/split/
 make train        # Create ML -> ios/CilantroCheck/Model/CilantroClassifier.mlmodel
@@ -37,7 +38,9 @@ Search terms live in `scripts/sources.json`. Add queries and re-run; files you a
 
 ### 2. Review the images (don't skip this)
 
-Open `data/raw/cilantro` and `data/raw/not_cilantro` in Finder (Gallery view, ⌘4) and delete or move anything mislabeled: a "taco" photo with cilantro on it belongs in `cilantro/`; a "cilantro" photo that's really parsley belongs in `not_cilantro/`. Label quality matters more than quantity.
+First glance through `data/rejected/`: Apple's built-in Vision classifier moved photos there that don't look like food. Move back anything that is real food; it won't be filtered again. (`make filter` runs the same check on demand; `make filter DRY=1` only lists what it would move.)
+
+Then open `data/raw/cilantro` and `data/raw/not_cilantro` in Finder (Gallery view, ⌘4) and delete or move anything mislabeled: a "taco" photo with cilantro on it belongs in `cilantro/`; a "cilantro" photo that's really parsley belongs in `not_cilantro/`. Label quality matters more than quantity.
 
 Aim for **300+ images per label**, roughly balanced. `make data` warns if one label has more than twice as many images as the other.
 

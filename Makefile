@@ -1,6 +1,6 @@
 PYTHON := .venv/bin/python
 
-.PHONY: setup download import clean-data split train data ios all
+.PHONY: setup download filter import clean-data split train evaluate data ios all
 
 setup:            ## Create the Python venv and install dependencies
 	python3 -m venv .venv
@@ -8,6 +8,10 @@ setup:            ## Create the Python venv and install dependencies
 
 download:         ## Fetch openly licensed food photos into data/raw/
 	cd scripts && ../$(PYTHON) download_openverse.py
+	swift scripts/filter_nonfood.swift
+
+filter:           ## Move non-food photos (gardens, people, animals...) to data/rejected/. Optional: DRY=1
+	swift scripts/filter_nonfood.swift $(if $(DRY),--dry-run,)
 
 import:           ## Add photos exported from the app (History -> Export). Optional: ZIP=path/to/file.zip
 	$(PYTHON) scripts/import_app_export.py $(if $(ZIP),"$(ZIP)",)
@@ -20,6 +24,9 @@ split:            ## Build data/split/{train,test}
 
 train:            ## Train with Create ML -> ios/CilantroCheck/Model/CilantroClassifier.mlmodel
 	swift training/train.swift
+
+evaluate:         ## Misclassified test images and a threshold sweep. Optional: DIR=data/split/train
+	swift training/evaluate.swift $(if $(DIR),"$(DIR)",)
 
 data: clean-data split
 

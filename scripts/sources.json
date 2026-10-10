@@ -14,21 +14,22 @@
       "cilantro cutting board",
       "chopping cilantro",
       "cilantro guacamole",
-      "cilantro bunch kitchen"
+      "cilantro bunch kitchen",
+      "cilantro in soup"
     ],
     "not_cilantro": [
       "parsley garnish",
       "flat leaf parsley",
-      "parsley cutting board",
+      "chopped parsley",
       "fresh basil",
       "basil garnish",
       "basil pasta",
       "green onion garnish",
       "mint garnish",
       "salad",
-      "dill",
-      "vegetables",
-      "chopped jalapeno"
+      "dill garnish",
+      "chopped jalapeno",
+      "chives garnish"
     ]
   }
 }

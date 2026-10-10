@@ -7,6 +7,9 @@ data/raw/**/*
 !data/raw/*/
 !data/raw/*/.gitkeep
 data/split/
+data/review/
+data/rejected/
+data/food_filter_checked.txt
 
 # Xcode (project is generated from ios/project.yml)
 ios/*.xcodeproj/
