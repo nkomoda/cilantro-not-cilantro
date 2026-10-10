@@ -27,9 +27,7 @@ struct HistoryView: View {
                     ForEach(groupedByDay, id: \.day) { group in
                         Section(dayTitle(group.day)) {
                             ForEach(group.records) { record in
-                                NavigationLink {
-                                    HistoryDetailView(record: record)
-                                } label: {
+                                NavigationLink(value: record) {
                                     HistoryRow(record: record)
                                 }
                             }
@@ -42,9 +40,15 @@ struct HistoryView: View {
             }
         }
         .navigationTitle("History")
+        .navigationDestination(for: CheckRecord.self) { HistoryDetailView(record: $0) }
         .toolbar {
-            Button("Export", systemImage: "square.and.arrow.up", action: export)
-                .disabled(pendingExport.isEmpty)
+            ToolbarItem(placement: .topBarLeading) {
+                HomeButton()
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Export", systemImage: "square.and.arrow.up", action: export)
+                    .disabled(pendingExport.isEmpty)
+            }
         }
         .fileExporter(
             isPresented: $showExporter,
@@ -179,6 +183,11 @@ private struct HistoryDetailView: View {
             .padding()
         }
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                HomeButton()
+            }
+        }
     }
 }
 
