@@ -12,25 +12,35 @@ struct ContentView: View {
     @State private var isClassifying = false
     @State private var showCamera = false
     @State private var photoItem: PhotosPickerItem?
+    @State private var path = NavigationPath()
 
     // Loaded once, lazily. Holds the error if the model hasn't been trained yet.
     private static let detector = Result { try CilantroDetector() }
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 20) {
-                preview
-                resultView
-                Spacer()
-                if ExpiryReminder.expiresSoon, let expiry = ExpiryReminder.expirationDate {
-                    Label("App expires \(expiry.formatted(.relative(presentation: .named))). Press Run in Xcode to renew.",
-                          systemImage: "exclamationmark.triangle")
-                        .font(.footnote)
-                        .foregroundStyle(.orange)
+        NavigationStack(path: $path) {
+            ScrollView {
+                VStack(spacing: 20) {
+                    preview
+                    resultView
                 }
-                buttons
+                .padding()
             }
-            .padding()
+            // Pinned below the scrolling content so a new photo is always one tap away.
+            .safeAreaInset(edge: .bottom) {
+                VStack(spacing: 8) {
+                    if ExpiryReminder.expiresSoon, let expiry = ExpiryReminder.expirationDate {
+                        Label("App expires \(expiry.formatted(.relative(presentation: .named))). Press Run in Xcode to renew.",
+                              systemImage: "exclamationmark.triangle")
+                            .font(.footnote)
+                            .foregroundStyle(.orange)
+                    }
+                    buttons
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+                .background(.bar)
+            }
             .navigationTitle("Cilantro or not cilantro?")
             .fullScreenCover(isPresented: $showCamera) {
                 CameraPicker { picked in setImage(picked) }
@@ -40,10 +50,20 @@ struct ContentView: View {
                 Task { await loadPhoto(item) }
             }
             .toolbar {
-                NavigationLink {
-                    HistoryView()
-                } label: {
-                    Label("History", systemImage: "clock.arrow.circlepath")
+                if image != nil {
+                    ToolbarItem(placement: .topBarLeading) {
+                        HomeButton()
+                    }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink(value: Route.history) {
+                        Label("History", systemImage: "clock.arrow.circlepath")
+                    }
+                }
+            }
+            .navigationDestination(for: Route.self) { route in
+                switch route {
+                case .history: HistoryView()
                 }
             }
             .onChange(of: scenePhase, initial: true) { _, phase in
@@ -51,24 +71,36 @@ struct ContentView: View {
             }
             .task { await ExpiryReminder.schedule() }
         }
+        .environment(\.goHome, GoHomeAction(action: goHome))
     }
 
+    /// Back to the start screen: leaves History and clears the current photo.
+    private func goHome() {
+        path = NavigationPath()
+        image = nil
+        prediction = nil
+        currentRecord = nil
+        errorMessage = nil
+        photoItem = nil
+    }
+
+    /// A square that the photo fills and is cropped to. (As an overlay, a tall photo can't
+    /// stretch the square and push the rest of the screen down.)
     private var preview: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.secondary.opacity(0.1))
-            if let image {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-            } else {
-                Label("Take or choose a photo of your food", systemImage: "fork.knife")
-                    .foregroundStyle(.secondary)
+        RoundedRectangle(cornerRadius: 16)
+            .fill(Color.secondary.opacity(0.1))
+            .aspectRatio(1, contentMode: .fit)
+            .overlay {
+                if let image {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                } else {
+                    Label("Take or choose a photo of your food", systemImage: "fork.knife")
+                        .foregroundStyle(.secondary)
+                }
             }
-        }
-        .frame(maxWidth: .infinity)
-        .aspectRatio(1, contentMode: .fit)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
     @ViewBuilder
@@ -141,6 +173,30 @@ struct ContentView: View {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+}
+
+enum Route: Hashable {
+    case history
+}
+
+/// Returns to the start screen from anywhere in the app. Equatable (always equal) so passing
+/// it down doesn't make every screen redraw; the action itself never changes.
+struct GoHomeAction: Equatable {
+    let action: () -> Void
+    func callAsFunction() { action() }
+    static func == (lhs: Self, rhs: Self) -> Bool { true }
+}
+
+extension EnvironmentValues {
+    @Entry var goHome = GoHomeAction(action: {})
+}
+
+struct HomeButton: View {
+    @Environment(\.goHome) private var goHome
+
+    var body: some View {
+        Button("Home", systemImage: "house") { goHome() }
     }
 }
 
